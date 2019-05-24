@@ -77,7 +77,7 @@ open class STFUFormColorPickerTableViewCell: STFUFormTableViewCell {
     ///
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
-        fieldContentView = stackView
+        mainContentView = stackView
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(textFieldDidChange(_:)),
@@ -85,8 +85,8 @@ open class STFUFormColorPickerTableViewCell: STFUFormTableViewCell {
             object: colorTextField)
     }
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         guard let rgbValue = rgbValue else { return }
         if colorTextField.text == nil || colorTextField.text == "" {
             colorTextField.text = String(format: "#%06X", rgbValue)
@@ -156,9 +156,9 @@ open class STFUFormColorPickerViewController: UIViewController {
     
     open var green: UInt = 0
     
-    lazy var colorWheel: ColorSwatch = {
-        let colorWheel = ColorSwatch()
-        return colorWheel
+    lazy var colorPicker: ColorPicker = {
+        let colorPicker = ColorPicker()
+        return colorPicker
     }()
     
     lazy var redTextView: UITextView = {
@@ -199,8 +199,8 @@ open class STFUFormColorPickerViewController: UIViewController {
         greenTextView.text = String(format: "%d", green)
         blueTextView.text = String(format: "%d", blue)
         
-        stackView.addArrangedSubview(colorWheel)
-        colorWheel.snp.makeConstraints { (dims) in
+        stackView.addArrangedSubview(colorPicker)
+        colorPicker.snp.makeConstraints { (dims) in
             dims.height.equalTo(stackView.width)
         }
         
@@ -236,7 +236,7 @@ extension STFUFormColorPickerViewController: UITextViewDelegate {
     
 }
 
-class ColorSwatch: UIView {
+class ColorPicker: UIView {
     
     override func draw(_ rect: CGRect) {
         

@@ -73,11 +73,11 @@ open class STFUFormStepperTableViewCell: STFUFormTableViewCell {
     
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
-        fieldContentView = stepperView
+        mainContentView = stepperView
     }
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         stepper.minimumValue = field.min
         stepper.maximumValue = field.max
         stepper.stepValue = field.stepSize

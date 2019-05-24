@@ -44,7 +44,7 @@ open class STFUFormTableViewCell: UITableViewCell {
     }
     
     /// Field of this cell.
-    open var field = STFUField() { didSet { updateContentView() } }
+    open var field = STFUField() { didSet { updateFieldDisplay() } }
     
     /// Whether or not this cell is checked.
     open var checked: Bool = false
@@ -54,17 +54,20 @@ open class STFUFormTableViewCell: UITableViewCell {
         get { return field.enabled }
         set {
             field.enabled = newValue
-            disabledOverlay.removeFromSuperview()
-            if !newValue && usesDisabledOverlay {
-                addSubview(disabledOverlay)
-                disabledOverlay.constrainToSuperview()
+            disabledOverlayView.removeFromSuperview()
+            if !newValue && disabledOverlay {
+                addSubview(disabledOverlayView)
+                disabledOverlayView.constrainToSuperview()
             }
             formViewController?.reload()
         }
     }
     
     /// Whether or not to use a disabled overlay.
-    open var usesDisabledOverlay: Bool { return true }
+    open var disabledOverlay: Bool { return true }
+    
+    /// Whether or not to use the long press popover display.
+    open var longPressPopover: Bool { return true }
     
     // MARK: - UI Components
     
@@ -80,7 +83,7 @@ open class STFUFormTableViewCell: UITableViewCell {
         titleLabel.snp.makeConstraints { (dims) in
             dims.width.equalTo(field.title?.width(withAttributes: [.font: titleLabel.font]) ?? 0.0)
         }
-        stackView.addArrangedSubview(fieldContentViewContainer)
+        stackView.addArrangedSubview(mainContentViewContainer)
         return stackView
     }()
     
@@ -100,26 +103,65 @@ open class STFUFormTableViewCell: UITableViewCell {
         return label
     }()
     
-    /// Field content view of this cell.
-    open var fieldContentView: UIView? {
+    /// Main content view of this cell.
+    open var mainContentView: UIView? {
         didSet {
             oldValue?.removeFromSuperview()
-            guard let fieldContentView = fieldContentView else { return }
-            fieldContentViewContainer.addConstrainedSubview(fieldContentView)
+            guard let mainContentView = mainContentView else { return }
+            mainContentViewContainer.addConstrainedSubview(mainContentView)
         }
     }
     
-    /// Field content view container of this cell.
-    fileprivate lazy var fieldContentViewContainer: UIView = {
+    /// Main content view container of this cell.
+    fileprivate lazy var mainContentViewContainer: UIView = {
         let view = UIView()
         return view
     }()
     
     /// Disabled overlay view of this cell.
-    fileprivate lazy var disabledOverlay: UIView = {
-        let disabledOverlay = UIView()
-        disabledOverlay.backgroundColor = .lightGray * 0.75
-        return disabledOverlay
+    fileprivate lazy var disabledOverlayView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .lightGray * 0.75
+        return view
+    }()
+    
+    /// Long press gesture recognizer of this table view cell.
+    let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(didRecognize(longPressGesture:)))
+    
+    /// Popover view to display when the user long presses.
+    fileprivate lazy var popoverView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.alpha = 0.0
+        view.layer.borderWidth = 2.0
+        view.layer.borderColor = UIColor.black.cgColor
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.addArrangedSubview(popoverTitleLabel)
+        popoverTitleLabel.snp.makeConstraints({ (dims) in
+            dims.height.equalTo(20.0)
+        })
+        stackView.addArrangedSubview(popoverValueLabel)
+        view.addConstrainedSubview(stackView, 5.0, 10.0, -5.0, -10.0)
+        return view
+    }()
+    
+    /// Popover title label for field title.
+    fileprivate lazy var popoverTitleLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.textColor = .black
+        label.font = .systemFont(ofSize: 10.0)
+        label.backgroundColor = .lightGray
+        return label
+    }()
+    
+    /// Popover label for field contents.
+    fileprivate lazy var popoverValueLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.textColor = .gray
+        return label
     }()
     
     // MARK: UIView Methods
@@ -127,7 +169,10 @@ open class STFUFormTableViewCell: UITableViewCell {
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
         contentView.addConstrainedSubview(layoutView, 0.0, 10.0, 0.0, -10.0)
-        updateContentView()
+        updateFieldDisplay()
+        if longPressPopover {
+            titleLabel.addGestureRecognizer(longPressGesture)
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(fieldDidChange(_:)),
@@ -137,7 +182,7 @@ open class STFUFormTableViewCell: UITableViewCell {
     }
     
     /// Updates the metadata of this field and its graphical display.
-    open func updateContentView() {
+    open func updateFieldDisplay() {
         iconView.snp.updateConstraints { (dims) in
             dims.width.equalTo(field.image != nil ? iconView.snp.height : 0.0)
         }
@@ -147,6 +192,8 @@ open class STFUFormTableViewCell: UITableViewCell {
             dims.width.equalTo(title.width(withAttributes: [.font: titleLabel.font]))
         }
         checked = field.checked
+        popoverTitleLabel.text = field.title
+        popoverValueLabel.text = field.value as? String
     }
     
     /// Draws focus to this field. Subclasses must override and implement
@@ -160,13 +207,48 @@ open class STFUFormTableViewCell: UITableViewCell {
 // MARK: - Event Handler Methods
 extension STFUFormTableViewCell {
     
+    /// Event handler for a long press gesture.
+    @objc
+    open func didRecognize(longPressGesture: UILongPressGestureRecognizer) {
+        
+        switch longPressGesture.state {
+            
+        case .began:
+            superview?.addSubview(popoverView)
+            popoverView.snp.makeConstraints { (dims) in
+                dims.left.equalTo(self).offset(10.0)
+                dims.right.equalTo(self).offset(-10.0)
+                dims.bottom.equalTo(self.snp.top).offset(-5.0)
+                dims.height.equalTo(50.0)
+            }
+            UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration)) {
+                self.popoverView.alpha = 1.0
+            }
+            break
+            
+        case .ended, .failed, .cancelled:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
+                    self.popoverView.alpha = 0.0
+                }) { _ in
+                    self.popoverView.removeFromSuperview()
+                }
+            }
+            
+        default:
+            break
+            
+        }
+        
+    }
+    
     /// Called when `field` is changed.
     ///
     /// - Parameters:
     ///     - notification: containing information about the triggered event.
     @objc
     open func fieldDidChange(_ notification: Notification) {
-        updateContentView()
+        updateFieldDisplay()
     }
     
     /// Called when `form` is changed.
@@ -175,13 +257,13 @@ extension STFUFormTableViewCell {
     ///     - notification: containing information about the triggered event.
     @objc
     open func formDidChange(_ notification: Notification) {
-        updateContentView()
+        updateFieldDisplay()
     }
     
 }
 
 /// Specifications for an option table view controller delegate.
-@objc(STFUFieldViewControllerDelegate)
+@objc
 public protocol STFUFieldViewControllerDelegate: class {
     
     /// Called when an form field view controller will disappear.

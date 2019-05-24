@@ -48,8 +48,8 @@ open class STFUFormButtonTableViewCell: STFUFormTableViewCell {
     
     // MARK: - STFUFormTableViewCell Methods
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         button.setTitle(field.value as? String, for: .normal)
     }
 

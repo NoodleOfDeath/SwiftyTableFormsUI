@@ -61,13 +61,13 @@ open class STFUFormPickerTableViewCell: STFUFormTableViewCell {
         accessoryType = .disclosureIndicator
         titleLabel.textAlignment = .right
         titleLabel.textColor = .gray
-        fieldContentView = optionView
+        mainContentView = optionView
     }
     
     // MARK: - STFUFormTableViewCell Methods
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         guard let key = field.value as? String else { return }
         guard let option = field.options[key] else { return }
         titleLabel.text = option.title

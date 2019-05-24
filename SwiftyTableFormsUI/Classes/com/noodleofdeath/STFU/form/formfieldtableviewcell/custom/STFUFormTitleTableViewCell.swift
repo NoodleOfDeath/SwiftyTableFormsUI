@@ -29,19 +29,19 @@ open class STFUFormTitleTableViewCell: STFUFormTableViewCell {
     
     /// Detail label of this table view cell.
     fileprivate lazy var detailLabel: UILabel = {
-        let detailLabel = UILabel()
-        detailLabel.textAlignment = .right
-        detailLabel.textColor = .gray
-        return detailLabel
+        let label = UILabel()
+        label.textAlignment = .right
+        label.textColor = .gray
+        return label
     }()
 
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
-        fieldContentView = detailLabel
+        mainContentView = detailLabel
     }
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         detailLabel.text = field.value as? String
     }
     

@@ -27,7 +27,7 @@ import UIKit
 import SnapKit
 
 /// Specifications for a form view controller delegate.
-@objc(STFUFormViewControllerDelegate)
+@objc
 public protocol STFUFormViewControllerDelegate: class {
 
     @objc optional
@@ -39,7 +39,7 @@ public protocol STFUFormViewControllerDelegate: class {
 }
 
 /// View controller that displays a form containing sections and fields.
-@objc(STFUFormViewController)
+@objc
 open class STFUFormViewController: UIViewController {
 
     // MARK: - Instance Properties
@@ -339,7 +339,7 @@ extension STFUFormViewController: UITableViewDelegate {
     open func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let cell = cell as? STFUFormTableViewCell else { return }
         cell.formViewController = self
-        cell.updateContentView()
+        cell.updateFieldDisplay()
     }
     
     open func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

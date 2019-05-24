@@ -45,8 +45,8 @@ open class STFUFormRadioTableViewCell: STFUFormTableViewCell {
     
     // MARK: - FieldCell Methods
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(checkDidChange(_:)),

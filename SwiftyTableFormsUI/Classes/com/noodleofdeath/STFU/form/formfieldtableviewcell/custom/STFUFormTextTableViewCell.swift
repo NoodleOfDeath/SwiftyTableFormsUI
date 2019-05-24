@@ -42,7 +42,7 @@ open class STFUFormTextTableViewCell: STFUFormTableViewCell {
     
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
-        fieldContentView = textField
+        mainContentView = textField
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(textFieldDidChange(_:)),
@@ -52,8 +52,8 @@ open class STFUFormTextTableViewCell: STFUFormTableViewCell {
     
     // MARK: - FieldCell Methods
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         textField.text = field.value as? String
         textField.placeholder = field.placeholder
     }

@@ -36,11 +36,11 @@ open class STFUFormCheckboxTableViewCell: STFUFormTableViewCell {
     
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
-        fieldContentView = checkboxSwitch
+        mainContentView = checkboxSwitch
     }
     
-    override open func updateContentView() {
-        super.updateContentView()
+    override open func updateFieldDisplay() {
+        super.updateFieldDisplay()
         guard let value = field.value as? Bool else { return }
         checkboxSwitch.isOn = value
         field.checked = value
